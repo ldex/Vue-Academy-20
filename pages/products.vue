@@ -1,27 +1,113 @@
 <template>
   <div>
     <h2>Produits</h2>
+    <fieldset class="filters">
+      Trier par:
+      <button @click="sort('name')">Nom</button>
+      <button @click="sort('price')">Prix</button>
+      <button @click="sort('modifiedDate')">Date</button>
+      <span> Filtrer par nom: <input v-model="filterName" /></span>
+    </fieldset>
     <ul class="products">
-      <li v-for="product in products" :key="product.id">
+      <nuxt-link
+        v-for="product in sortedFilteredPaginatedProducts"
+        :key="product.id"
+        :to="{ name: 'product-id', params: { id: product.id } }"
+        tag="li"
+      >
         <span class="name">{{ product.name }}</span>
         <span class="description">{{ product.description }}</span>
         <span class="price">{{ product.price }}</span>
-      </li>
+      </nuxt-link>
     </ul>
+    <button :disabled="pageNumber === 1" @click="prevPage">
+      &lt; Previous
+    </button>
+    Page {{ pageNumber }}
+    <button :disabled="pageNumber >= pageCount" @click="nextPage">
+      Next &gt;
+    </button>
   </div>
 </template>
 
 <script>
 export default {
-  asyncData(context) {
-    return context.$repositories.products.get().then((result) => {
-      return { products: result.data }
-    })
+  head () {
+    return {
+      title: 'Mes produits',
+      meta: [
+        // hid is used as unique identifier. Do not use `vmid` for it as it will not work
+        { hid: 'description', name: 'description', content: 'Voici la liste de nos produits.' }
+      ]
+    }
   },
+  props: {
+    pageSize: {
+      type: Number,
+      required: false,
+      default: 5,
+    },
+  },
+  async fetch({ store }) {
+    await store.dispatch('products/fetchProducts')
+  },
+  // asyncData(context) {
+  //   return context.$repositories.products.get().then((result) => {
+  //     return { products: result.data }
+  //   })
+  // },
   data() {
-      return {
-          cpt: 1
+    return {
+      filterName: '',
+      sortName: 'modifiedDate',
+      sortDir: 'desc',
+      pageNumber: 1,
+    }
+  },
+  computed: {
+    products() {
+      return this.$store.state.products.list
+    },
+    filteredProducts() {
+      const filter = new RegExp(this.filterName, 'i')
+      return this.products.filter((el) => el.name.match(filter))
+    },
+    sortedFilteredProducts() {
+      return [...this.filteredProducts].sort((a, b) => {
+        let modifier = 1
+        if (this.sortDir === 'desc') modifier = -1
+        if (a[this.sortName] < b[this.sortName]) return -1 * modifier
+        if (a[this.sortName] > b[this.sortName]) return 1 * modifier
+        return 0
+      })
+    },
+    sortedFilteredPaginatedProducts() {
+      const start = (this.pageNumber - 1) * this.pageSize
+      const end = start + this.pageSize
+
+      return this.sortedFilteredProducts.slice(start, end)
+    },
+    pageCount() {
+      const l = this.filteredProducts.length
+      const s = this.pageSize
+      return Math.ceil(l / s)
+    },
+  },
+  methods: {
+    sort(s) {
+      // if s == current sort, reverse order
+      if (s === this.sortName) {
+        this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
       }
+      this.sortName = s
+    },
+    nextPage() {
+      this.pageNumber++;
+      throw new Error('test erreur');
+    },
+    prevPage() {
+      this.pageNumber--
+    },
   },
 }
 </script>

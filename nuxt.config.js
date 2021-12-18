@@ -1,14 +1,15 @@
 export default {
+  target: 'static',
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'demo-nuxt',
+    title: 'Ma Super Boutique',
     htmlAttrs: {
       lang: 'en'
     },
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
+      { hid: 'description', name: 'description', content: 'Tous les produits que vous cherchez!' },
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
@@ -20,6 +21,11 @@ export default {
   css: [
     '~/assets/main.css'
   ],
+
+  router: {
+    prefetchLinks: true
+  },
+
 
   pageTransition: {
     name: 'wipe',
@@ -33,7 +39,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    '~/plugins/repositories.js'
+    '~/plugins/repositories.js',
+    '~/plugins/axios.js'
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
